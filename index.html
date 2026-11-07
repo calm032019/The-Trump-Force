@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b1a3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trump Force">
+<meta name="description" content="The Trump Force – a parody run-and-gun platformer. Blow up the Swamp King's army across 10 levels.">
+<title>The Trump Force</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="safe"></div>
+
+<div id="ui">
+  <section id="title" class="screen show">
+    <div class="stars"></div>
+    <h1 class="logo"><span class="l1">THE</span><span class="l2">TRUMP</span><span class="l3">FORCE</span></h1>
+    <p class="tag">Drain the swamp. Bigly.</p>
+    <canvas id="titleArt" width="160" height="110"></canvas>
+    <div class="btns">
+      <button id="btnPlay" class="big">PLAY</button>
+      <button id="btnLevels">LEVELS</button>
+      <button id="btnSound" class="small">SOUND: ON</button>
+    </div>
+    <p class="hint touch-only">Landscape recommended · Left thumb: move · Right: JUMP / FIRE / BOMB</p>
+    <p class="hint desk-only">Move: ← → / A D · Jump: Space / W / ↑ · Fire: J / X · Grenade: K / C · Pause: P</p>
+    <p class="legal">A parody fan game. Not affiliated with or endorsed by anyone.</p>
+  </section>
+
+  <section id="levels" class="screen">
+    <h2>SELECT MISSION</h2>
+    <div id="levelGrid"></div>
+    <button id="btnLevelsBack">BACK</button>
+  </section>
+
+  <section id="pause" class="screen dim">
+    <h2>PAUSED</h2>
+    <div class="btns">
+      <button id="btnResume" class="big">RESUME</button>
+      <button id="btnRestart">RESTART LEVEL</button>
+      <button id="btnPauseSound" class="small">SOUND: ON</button>
+      <button id="btnQuit">QUIT TO MENU</button>
+    </div>
+  </section>
+
+  <section id="complete" class="screen dim">
+    <h2 class="win">MISSION ACCOMPLISHED</h2>
+    <p id="completeQuote" class="quote"></p>
+    <div id="completeStats" class="stats"></div>
+    <div class="btns">
+      <button id="btnNext" class="big">NEXT LEVEL</button>
+      <button id="btnCompleteMenu">MENU</button>
+    </div>
+  </section>
+
+  <section id="gameover" class="screen dim">
+    <h2 class="lose">SAD!</h2>
+    <p class="quote">The Swamp wins this round. Total disaster.</p>
+    <div class="btns">
+      <button id="btnRetry" class="big">TRY AGAIN</button>
+      <button id="btnOverMenu">MENU</button>
+    </div>
+  </section>
+
+  <section id="victory" class="screen">
+    <div class="stars"></div>
+    <h2 class="win">THE SWAMP IS DRAINED!</h2>
+    <p class="quote">"Nobody has ever drained a swamp like this. Many people are saying it. Tremendous."</p>
+    <div id="victoryStats" class="stats"></div>
+    <div class="btns">
+      <button id="btnVictoryMenu" class="big">MENU</button>
+    </div>
+  </section>
+
+  <section id="rotate" class="screen dim">
+    <div class="phone"></div>
+    <h2>TURN YOUR PHONE</h2>
+    <p class="quote">Landscape is the best mode. The greatest mode, frankly.</p>
+    <div class="btns"><button id="btnRotateAnyway" class="small">PLAY ANYWAY</button></div>
+  </section>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
