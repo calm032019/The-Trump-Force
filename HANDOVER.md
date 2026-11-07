@@ -15,7 +15,7 @@ Repo: `calm032019/The-Trump-Force`. Branch: `ccr-cc043828-i6mw1n`. Commit and pu
 | `index.html` | Done. Contains a full-screen `<canvas id="game">` and these DOM screens: `#title`, `#levels`, `#pause`, `#complete`, `#gameover`, `#victory`, `#rotate`. It loads `game.js`, which **doesn't exist yet**. Button ids: `btnPlay`, `btnLevels`, `btnSound`, `btnLevelsBack`, `btnResume`, `btnRestart`, `btnPauseSound`, `btnQuit`, `btnNext`, `btnCompleteMenu`, `btnRetry`, `btnOverMenu`, `btnVictoryMenu`, `btnRotateAnyway`. Containers: `#levelGrid`, `#completeStats`, `#completeQuote`, `#victoryStats`, `#titleArt` (a 160×110 canvas). `#safe` is used to measure the safe-area insets. |
 | `style.css` | Done. Retro pixel UI using the Press Start 2P font. `.screen.show` makes a screen visible. A `body.touch` class switches between the touch and desktop hints. |
 | `manifest.json`, `icon.svg` | Done. A PWA manifest (landscape, fullscreen) and an icon. |
-| `game.js` | **To do: this is the whole game.** |
+| `game.js` | Done (2026-11-07). The whole game: 10 levels, 5 bosses + Swamp King mech, allies, eagles, airstrikes, touch + keyboard, WebAudio. Tested headless across all 10 levels via `window.__ttf`. |
 
 ## Content the user asked for (all must be included)
 **Player and allies**
