@@ -73,9 +73,6 @@ Done on branch `v2` (not pushed):
 - Fixed: dying in a boss arena respawned you outside the locked wall.
 - All 30 levels pass the headless run-through.
 
-Next: **storyline and dramatic cutscenes**, which the user asked for.
-- An intro, a short scene before each world and before each boss, and an ending.
-- Draw them on the canvas with letterbox bars, a typewriter caption and the existing sprites.
-- Let the player skip them with a tap or a key.
+Storyline and cutscenes: done. Scenes play before level 1 (intro), before levels 11 and 21 (world openers), before every boss level (Pete's intel briefing) and after level 30 (ending). They use letterbox bars and a typewriter caption, and can be skipped with SKIP, a tap or a key.
 
 Content line, agreed with the user: the Generalissimo stays a generic cartoon dictator, not an ethnic stereotype. No level treats immigrants as the enemy.

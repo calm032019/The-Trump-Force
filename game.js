@@ -2025,6 +2025,7 @@ cv.addEventListener('pointerdown', e => {
   Sound.init();
   if (e.pointerType === 'touch' && !isTouchUI()) document.body.classList.add('touch');
   const x = e.clientX, y = e.clientY;
+  if (state === 'cutscene') { sceneTap(x, y); e.preventDefault(); return; }
   if (state === 'play' && x >= pauseBtn.x - 6 && y <= pauseBtn.y + pauseBtn.s + 6 && x <= pauseBtn.x + pauseBtn.s + 6) { pauseGame(); e.preventDefault(); return; }
   if (e.pointerType === 'mouse' || state !== 'play') return;
   try { cv.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
@@ -2046,6 +2047,7 @@ function clearTouch() { touch.stick = null; touch.ptrs.clear(); updateStick(); u
 // keyboard
 window.addEventListener('keydown', e => {
   Sound.init();
+  if (state === 'cutscene') { if (!e.repeat) { if (e.code === 'Escape') sceneAdvance(true); else if (['Space', 'Enter', 'KeyJ', 'KeyX', 'ArrowRight'].includes(e.code)) sceneAdvance(false); } e.preventDefault(); return; }
   if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat) {
     if (state === 'play') pauseGame(); else if (state === 'paused') resumeGame();
     e.preventDefault(); return;
@@ -2059,6 +2061,124 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && sta
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 200));
 
+
+// ============================================================ storyline & cutscenes
+// Panel: { bg, actors: [[sprKey, xFrac, face, scale]], who, text }
+const STORY = {
+  intro: [
+    { bg: 'oval', actors: [['trump', 0.5, 1, 3]], who: 'NARRATOR', text: 'Washington. 3:00 AM. The phone in the Oval Office will not stop ringing.' },
+    { bg: 'swamp', actors: [['goon', 0.35, 1, 2.4], ['heavy', 0.55, -1, 2.4], ['goon', 0.75, -1, 2.4]], who: 'NARRATOR', text: 'Deep in the Swamp, a monstrous SWAMP KING has raised an army of goons... and dragged the whole Swamp into one last power grab.' },
+    { bg: 'swamp', actors: [['barron', 0.3, 1, 2.4], ['donjr', 0.5, 1, 2.4], ['eric', 0.7, -1, 2.4]], who: 'NARRATOR', text: 'Worse: Barron, Don Jr and Eric have been captured and locked in cages across ten hostile sectors.' },
+    { bg: 'oval', actors: [['trump', 0.4, 1, 3], ['hegseth', 0.68, -1, 3]], who: 'PETE', text: 'Sir. Trump Force One is fuelled, the eagles are fed, and the grenades are... very large.' },
+    { bg: 'oval', actors: [['trump', 0.5, 1, 3.4]], who: 'DONALD', text: "Nobody kidnaps my family. Nobody. Assemble THE TRUMP FORCE. We're going to drain that swamp. Bigly." },
+  ],
+  world2: [
+    { bg: 'final', actors: [['trump', 0.35, 1, 3]], who: 'NARRATOR', text: 'The Swamp King is caged. The family is free. America sleeps soundly... for exactly one night.' },
+    { bg: 'studio', actors: [['anchorbot', 0.4, 1, 2.6], ['agent', 0.62, -1, 2.6]], who: 'NARRATOR', text: 'The Swamp had back-ups. Fake News is broadcasting from a secret studio. The Deep State is hiding in a basement. And Nexico refuses to pay for the wall.' },
+    { bg: 'tower', actors: [['trump', 0.45, 1, 3.2], ['barron', 0.65, -1, 3]], who: 'DONALD', text: 'They want a comeback? I invented the comeback. Pack the suitcase, Barron. We are going on TOUR.' },
+  ],
+  world3: [
+    { bg: 'sewer', actors: [['goon', 0.4, 1, 2.4], ['goon', 0.6, -1, 2.4]], who: 'NARRATOR', text: 'Driven out of Washington, the Swamp has gone underground. Into the sewers. Into orbit. Even onto the Moon.' },
+    { bg: 'final', actors: [['biden', 0.4, 1, 2.8], ['harris', 0.6, -1, 2.8]], who: 'NARRATOR', text: 'And from the ruins of the Swamp King, a new tyrant has been built: the SWAMP EMPEROR. Two pilots. One mech. Zero plans.' },
+    { bg: 'space', actors: [['trump', 0.32, 1, 3], ['hegseth', 0.52, 1, 3], ['donjr', 0.7, -1, 3]], who: 'PETE', text: 'Space Force is standing by, sir. Say the word.' },
+    { bg: 'space', actors: [['trump', 0.5, 1, 3.4]], who: 'DONALD', text: 'The word is WINNING. Light the rockets.' },
+  ],
+  ending: [
+    { bg: 'final', actors: [['trump', 0.5, 1, 3.2]], who: 'NARRATOR', text: 'The Swamp Emperor lies in pieces. Its pilots sit in a very small cage, arguing about whose turn it was to steer.' },
+    { bg: 'whitehouse', actors: [['barron', 0.22, 1, 3], ['donjr', 0.38, 1, 3], ['trump', 0.54, 1, 3.4], ['eric', 0.7, -1, 3], ['hegseth', 0.84, -1, 3]], who: 'NARRATOR', text: 'The Trump Force returns home. The eagles circle. The flags fly. Every last drop of the Swamp has been drained.' },
+    { bg: 'whitehouse', actors: [['trump', 0.5, 1, 3.6]], who: 'DONALD', text: 'They said it could not be done. It was done. Thirty missions. Perfect. Maybe the most perfect ever. Thank you, America.' },
+  ],
+};
+const BRIEF = {
+  mamdani: 'Sector 2 is run by ZOHRAN MAMDANI. Rents are frozen, buses are free, and so is the paperwork. Expect flying rent notices.',
+  harris: 'KAMALA HARRIS holds the desert fortress. Intel reports coconuts. Many, many coconuts.',
+  clinton: 'HILLARY CLINTON has dug in on Covfefe Mountain with a private server and endless email attachments.',
+  obama: 'BARACK OBAMA has taken over the city. Beware the tan suit. It is faster than it looks.',
+  biden: 'This is it: the SWAMP KING mech, piloted by JOE BIDEN himself. Aim for the cockpit. Bring ice cream.',
+  anchorbot: 'The FAKE NEWS ANCHORBOT is broadcasting lies 24/7. Time to cancel the show.',
+  agent: 'THE DEEP STATE AGENT does not exist. Officially. He is in the basement. Unofficially.',
+  generalissimo: 'The GENERALISSIMO OF NEXICO says he will never pay for the wall. Change his mind. Bring a contract.',
+  obama2: 'Bad news: OBAMA is back for the sequel, now with teleprompters. Nobody asked for this.',
+  kraken: 'Something huge is moving in the sewer. Rumours say it is the SWAMP KRAKEN. Rumours are right.',
+  harris2: 'KAMALA HARRIS has seized the White House lawn for a rematch. The coconuts are bigger this time.',
+  emperor: 'The SWAMP EMPEROR awaits on its throne: Biden AND Harris, one mech. End this, sir.',
+};
+let scene = null;
+function playCutscene(panels, onDone) {
+  scene = { panels, i: 0, t: 0, onDone, prevState: state, bdCache: {} };
+  state = 'cutscene'; clearTouch(); showScreen(null);
+}
+function sceneAdvance(skipAll) {
+  if (!scene) return;
+  const p = scene.panels[scene.i], full = p.text.length;
+  if (!skipAll && scene.t * 45 < full) { scene.t = full / 45 + 0.01; return; }
+  if (!skipAll && scene.i < scene.panels.length - 1) { scene.i++; scene.t = 0; Sound.play('paper'); return; }
+  const done = scene.onDone; scene = null; done && done();
+}
+function sceneBackdrop(key) {
+  if (!scene.bdCache[key]) scene.bdCache[key] = buildBackdrop(THEMES[key] || THEMES.final, 7777, VH);
+  return scene.bdCache[key];
+}
+function drawOval() {
+  const R = (x, y, w, h, c) => { bx.fillStyle = c; bx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+  R(0, 0, VW, VH, '#e8e0c8'); for (let x = 0; x < VW; x += 12) R(x, 0, 2, VH * 0.72, '#ddd4b8');
+  const cx = VW / 2;
+  R(cx - 60, 26, 120, 80, '#8ab8e8'); R(cx - 60, 26, 120, 3, '#fff'); R(cx - 1, 26, 2, 80, '#fff'); R(cx - 60, 64, 120, 2, '#fff');
+  R(cx - 84, 18, 26, 110, '#d4af37'); R(cx + 58, 18, 26, 110, '#d4af37'); R(cx - 84, 18, 168, 8, '#b8860b');
+  for (const fx of [cx - 110, cx + 96]) { R(fx, 30, 2, 100, '#ddd'); for (let r = 0; r < 9; r++) R(fx + 2, 32 + r * 2, 14, 2, r % 2 ? '#fff' : '#c8102e'); R(fx + 2, 32, 6, 9, '#1c3f8f'); }
+  R(0, VH * 0.72, VW, VH, '#1c3f8f');
+  bx.fillStyle = '#2a4fa8'; bx.beginPath(); bx.ellipse(cx, VH * 0.86, VW * 0.42, 22, 0, 0, Math.PI * 2); bx.fill();
+  bx.fillStyle = '#d4af37'; bx.beginPath(); bx.ellipse(cx, VH * 0.86, 22, 8, 0, 0, Math.PI * 2); bx.fill();
+  R(cx - 70, VH * 0.42, 140, 22, '#5a3a1e'); R(cx - 70, VH * 0.42, 140, 3, '#7a5228'); R(cx - 20, VH * 0.42 + 7, 40, 10, '#4a2e16'); R(cx + 30, VH * 0.42 - 6, 10, 6, '#c8102e');
+}
+function renderCutscene() {
+  const sc = scene; if (!sc) return;
+  const p = sc.panels[sc.i];
+  bx.imageSmoothingEnabled = false;
+  if (p.bg === 'oval') drawOval();
+  else {
+    const th = THEMES[p.bg] || THEMES.final;
+    const g = bx.createLinearGradient(0, 0, 0, VH); g.addColorStop(0, th.sky[0]); g.addColorStop(1, th.sky[1]); bx.fillStyle = g; bx.fillRect(0, 0, VW, VH);
+    const bd = sceneBackdrop(p.bg), drift = sc.t * 6;
+    [[bd.far, 0.4], [bd.near, 1]].forEach(([img, k]) => { let x = -Math.round(drift * k) % bd.W; if (x > 0) x -= bd.W; for (; x < VW; x += bd.W) bx.drawImage(img, x, VH - bd.H + 10); });
+    const gy = Math.min(VH * 0.83, (CH - Math.max(CH * 0.27, 90)) * DPR / SCALE - 1); bx.fillStyle = th.dirt; bx.fillRect(0, gy, VW, VH); bx.fillStyle = th.top; bx.fillRect(0, gy, VW, 4);
+  }
+  const boxTop = (CH - Math.max(CH * 0.27, 90)) * DPR / SCALE;
+  const groundY = Math.min(VH * 0.83, boxTop - 1);
+  p.actors.forEach(([k, xf, face, scl], i) => {
+    const fr = SPR[k] && SPR[k].stand; if (!fr) return;
+    const bob = Math.round(Math.sin(sc.t * 3 + i) * 1);
+    const w = fr.r.width * scl, h = fr.r.height * scl;
+    bx.drawImage(face < 0 ? fr.l : fr.r, Math.round(VW * xf - w / 2), Math.round(groundY - h + bob), Math.round(w), Math.round(h));
+  });
+  ctx.imageSmoothingEnabled = false; ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(buf, 0, 0, VW, VH, 0, 0, VW * SCALE, VH * SCALE);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // letterbox + caption
+  const bar = CH * 0.12, ease = Math.min(1, sc.t * 3);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, CW, bar * ease);
+  const boxH = Math.max(CH * 0.27, 90);
+  ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, CH - boxH * ease, CW, boxH);
+  ctx.fillStyle = '#d4af37'; ctx.fillRect(0, CH - boxH * ease, CW, 3);
+  if (ease >= 1) {
+    const fs = clamp(CW / 70, 9, 16), pad = Math.max(24, safe.l + 18);
+    outlinedText(p.who, pad, CH - boxH + fs * 1.3, fs * 1.05, p.who === 'NARRATOR' ? '#9fd8ff' : '#ffd34d', 'left');
+    const shown = p.text.slice(0, Math.floor(sc.t * 45));
+    ctx.font = fs * 0.95 + 'px ' + FONT; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    const maxW = CW - pad * 2; let line = '', y = CH - boxH + fs * 2.6;
+    for (const word of shown.split(' ')) { const test = line ? line + ' ' + word : word; if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, pad, y); line = word; y += fs * 1.7; } else line = test; }
+    ctx.fillText(line, pad, y);
+    if (sc.t * 45 >= p.text.length && (sc.t * 2 | 0) % 2) outlinedText((isTouchUI() ? 'TAP' : 'PRESS SPACE') + ' ▶', CW - pad, CH - fs * 1.2, fs * 0.8, '#ffd34d', 'right');
+  }
+  outlinedText((sc.i + 1) + '/' + sc.panels.length, CW / 2, bar * 0.5, clamp(CW / 90, 7, 11), '#888');
+  ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(CW - safe.r - 92, safe.t + 10, 80, 30); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(CW - safe.r - 92, safe.t + 10, 80, 30);
+  outlinedText('SKIP', CW - safe.r - 52, safe.t + 25, 11, '#ffffff');
+}
+function sceneTap(x, y) {
+  if (x > CW - safe.r - 100 && y < safe.t + 48) sceneAdvance(true); else sceneAdvance(false);
+}
+
 // ============================================================ screens & flow
 const $ = id => document.getElementById(id);
 const SCREENS = ['title', 'levels', 'pause', 'complete', 'gameover', 'victory', 'shop'];
@@ -2069,8 +2189,25 @@ function checkRotate() {
   rotateBlocked = need;
   $('rotate').classList.toggle('show', need);
 }
-function startLevel(n) {
-  curLevel = clamp(n, 1, NLEV);
+function startLevel(n, noStory) {
+  n = clamp(n, 1, NLEV);
+  if (!noStory) {
+    const panels = [];
+    if (n === 1) panels.push(...STORY.intro);
+    if (n === 11) panels.push(...STORY.world2);
+    if (n === 21) panels.push(...STORY.world3);
+    const L = LEVELS[n - 1];
+    if (L.boss && BRIEF[L.boss]) {
+      const bk = BOSSES[L.boss] ? BOSSES[L.boss].spr || L.boss : null;
+      const actors = [['hegseth', 0.3, 1, 3]];
+      if (L.boss === 'emperor') actors.push(['biden', 0.62, -1, 3], ['harris', 0.78, -1, 3]);
+      else if (L.boss === 'biden') actors.push(['biden', 0.7, -1, 3]);
+      else if (bk && SPR[bk]) actors.push([bk, 0.7, -1, 3.4]);
+      panels.push({ bg: L.theme, actors, who: 'PETE · INTEL BRIEFING', text: BRIEF[L.boss] });
+    }
+    if (panels.length) { curLevel = n; playCutscene(panels, () => startLevel(n, true)); return; }
+  }
+  curLevel = n;
   Sound.init();
   clearTouch();
   newWorld(curLevel);
@@ -2098,6 +2235,9 @@ function levelComplete() {
   const stats = `KILLS <b>${wd.kills}</b> · RESCUES <b>${wd.rescues}</b><br>TIME <b>${fmtTime(wd.time)}</b> · SCORE <b>${wd.score}</b><br>PASSPORTS <b>+${wd.passports}</b> (BANK ${save.passports})`;
   if (wd.n >= NLEV) {
     state = 'victory';
+    playCutscene(STORY.ending, () => { state = 'victory'; showScreen('victory'); drawVictoryArt(); });
+    $('victoryStats').innerHTML = `ALL ${NLEV} MISSIONS COMPLETE<br>FINAL MISSION: ${stats}`;
+    return;
     $('victoryStats').innerHTML = `ALL ${NLEV} MISSIONS COMPLETE<br>FINAL MISSION: ${stats}`;
     showScreen('victory'); drawVictoryArt();
     return;
@@ -2212,7 +2352,8 @@ function frame(now) {
       if (state !== 'play') break;
     }
   }
-  if (world && state !== 'menu') { try { render(); } catch (err) { console.error(err); } }
+  if (state === 'cutscene' && scene) { scene.t += dt; try { renderCutscene(); } catch (err) { console.error(err); } }
+  else if (world && state !== 'menu') { try { render(); } catch (err) { console.error(err); } }
   requestAnimationFrame(frame);
 }
 
@@ -2221,7 +2362,9 @@ window.__ttf = {
   get state() { return state; },
   get world() { return world; },
   levels: LEVELS,
-  start: n => startLevel(n),
+  start: (n, story) => startLevel(n, !story),
+  scene: () => scene && { i: scene.i, n: scene.panels.length },
+  advance: all => sceneAdvance(all),
   complete: () => levelComplete(),
   god: (on = true) => { godMode = on; },
   unlockAll: () => { save.unlocked = NLEV; persist(); },
