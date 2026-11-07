@@ -10,7 +10,7 @@ canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block;image-re
   gap:min(2.2vh,14px);padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
   pointer-events:auto;text-align:center;overflow-y:auto}
 .screen.show{display:flex}
-#title,#victory,#levels{background:radial-gradient(ellipse at 50% 120%,#7a1020 0%,#2a0f2e 40%,#0b1a3a 75%)}
+#title,#victory,#levels,#shop{background:radial-gradient(ellipse at 50% 120%,#7a1020 0%,#2a0f2e 40%,#0b1a3a 75%)}
 .screen.dim{background:rgba(5,10,30,.82)}
 .stars{position:absolute;inset:0;pointer-events:none;opacity:.6;
   background-image:radial-gradient(#fff 1px,transparent 1.5px),radial-gradient(#fff 1px,transparent 1.5px);
@@ -48,3 +48,12 @@ body.touch .touch-only{display:block}
 body:not(.touch) .desk-only{display:block}
 .phone{width:44px;height:74px;border:4px solid #fff;border-radius:8px;animation:rot 1.6s ease-in-out infinite}
 @keyframes rot{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+button.gold{background:#b8860b;color:#fff}
+#shopList{display:flex;flex-direction:column;gap:8px;width:100%;max-width:640px}
+.shoprow{display:flex;align-items:center;gap:12px;justify-content:space-between;background:rgba(0,0,0,.35);border:2px solid #b8860b;padding:8px 12px;text-align:left}
+.shoprow .si{display:flex;flex-direction:column;gap:5px;font-size:clamp(7px,1.7vh,10px);line-height:1.5}
+.shoprow .si b{color:#ffd34d;font-size:clamp(8px,2vh,12px)}
+.shoprow .si i{font-style:normal;color:#ffd34d;letter-spacing:2px}
+#shopBank b{color:#ffd34d}
+#worldTabs{margin-bottom:4px}
+#shop{justify-content:flex-start}
