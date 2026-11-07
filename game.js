@@ -40,18 +40,23 @@ function flipCanvas(src) {
 // v2 launch reset (2026-11-07): progress moved to a new key so every player starts again at
 // mission 1 with no passports or upgrades. Only the sound preference carries over from v1.
 const SAVE_KEY = 'ttf-save-v2', OLD_SAVE_KEY = 'ttf-save-v1';
+// Bump RESET_EPOCH to wipe every player's progress on their next visit (sound setting is kept).
+const RESET_EPOCH = 2;
 let save = { unlocked: 1, muted: false, passports: 0, up: {} };
 try {
   const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-  if (s && typeof s === 'object') save = Object.assign(save, s);
+  if (s && typeof s === 'object' && s.epoch === RESET_EPOCH) save = Object.assign(save, s);
+  else if (s && typeof s === 'object') save.muted = !!s.muted;
   else {
     const old = JSON.parse(localStorage.getItem(OLD_SAVE_KEY) || 'null');
     if (old && typeof old === 'object') save.muted = !!old.muted;
   }
   localStorage.removeItem(OLD_SAVE_KEY);
 } catch (e) { /* storage unavailable */ }
+save.epoch = RESET_EPOCH;
 save.unlocked = clamp(save.unlocked | 0 || 1, 1, 40);
 save.passports = Math.max(0, save.passports | 0);
+persist();
 if (!save.up || typeof save.up !== 'object') save.up = {};
 // Shop upgrades, bought with golden passports
 const UPGRADES = [
@@ -2461,6 +2466,11 @@ function buildShop() {
 function soundLabel() { const t = save.muted ? 'SOUND: OFF' : 'SOUND: ON'; $('btnSound').textContent = t; $('btnPauseSound').textContent = t; }
 function toggleSound() { Sound.init(); Sound.setMuted(!save.muted); soundLabel(); }
 $('btnShop').addEventListener('click', () => openShop('title'));
+$('btnReset').addEventListener('click', () => {
+  if (!window.confirm('Reset all progress? Missions, golden passports and upgrades will be wiped.')) return;
+  save = { unlocked: 1, muted: save.muted, passports: 0, up: {}, epoch: RESET_EPOCH }; persist();
+  applyUpgradeLooks(); gridWorld = -1; $('btnPlay').textContent = 'PLAY';
+});
 $('btnCompleteShop').addEventListener('click', () => openShop('complete'));
 $('btnShopBack').addEventListener('click', () => showScreen(shopReturn));
 $('btnPlay').addEventListener('click', () => startLevel(save.unlocked));
