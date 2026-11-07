@@ -37,11 +37,18 @@ function flipCanvas(src) {
 }
 
 // ============================================================ save
-const SAVE_KEY = 'ttf-save-v1';
+// v2 launch reset (2026-11-07): progress moved to a new key so every player starts again at
+// mission 1 with no passports or upgrades. Only the sound preference carries over from v1.
+const SAVE_KEY = 'ttf-save-v2', OLD_SAVE_KEY = 'ttf-save-v1';
 let save = { unlocked: 1, muted: false, passports: 0, up: {} };
 try {
   const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
   if (s && typeof s === 'object') save = Object.assign(save, s);
+  else {
+    const old = JSON.parse(localStorage.getItem(OLD_SAVE_KEY) || 'null');
+    if (old && typeof old === 'object') save.muted = !!old.muted;
+  }
+  localStorage.removeItem(OLD_SAVE_KEY);
 } catch (e) { /* storage unavailable */ }
 save.unlocked = clamp(save.unlocked | 0 || 1, 1, 30);
 save.passports = Math.max(0, save.passports | 0);
