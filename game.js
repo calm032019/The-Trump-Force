@@ -50,7 +50,7 @@ try {
   }
   localStorage.removeItem(OLD_SAVE_KEY);
 } catch (e) { /* storage unavailable */ }
-save.unlocked = clamp(save.unlocked | 0 || 1, 1, 30);
+save.unlocked = clamp(save.unlocked | 0 || 1, 1, 40);
 save.passports = Math.max(0, save.passports | 0);
 if (!save.up || typeof save.up !== 'object') save.up = {};
 // Shop upgrades, bought with golden passports
@@ -233,6 +233,7 @@ const WEAPONS = {
   smg: { rate: 0.09, dmg: 1, speed: 360, tdmg: 1, pellets: 1, spread: 28, life: 0.75, pierce: 0, snd: 'smg', col: '#fff3a0' },
   rifle: { rate: 0.5, dmg: 3, speed: 520, tdmg: 2, pellets: 1, spread: 0, life: 0.9, pierce: 3, snd: 'rifle', col: '#ffffff' },
   shotgun: { rate: 0.55, dmg: 1, speed: 300, tdmg: 1, pellets: 6, spread: 120, life: 0.3, pierce: 0, snd: 'shotgun', col: '#ffcf70' },
+  laser: { rate: 0.14, dmg: 1.5, speed: 620, tdmg: 1, pellets: 1, spread: 0, life: 0.6, pierce: 2, snd: 'smg', col: '#3ad0ff' },
   assault: { rate: 0.12, dmg: 1, speed: 400, tdmg: 1, pellets: 1, spread: 10, life: 0.85, pierce: 0, snd: 'smg', col: '#ffe9a0' },
 };
 const CHARS = {
@@ -248,6 +249,9 @@ const CHARS = {
   obama: { skin: '#7a4e2e', skinD: '#5e3a20', hair: '#2a2a2a', hairH: '#8a8a8a', jacket: '#c8a874', shirt: '#ffffff', tie: '#3b5aa8', pants: '#a88c5c', boots: '#3b2a1a', gun: null, head: 'obama' },
   biden: { skin: '#f1c4a4', skinD: '#d39f7e', hair: '#f4f4f4', hairH: '#ffffff', jacket: '#1e2a52', shirt: '#ffffff', tie: '#3c6fd1', pants: '#18213f', boots: '#111', gun: null, head: 'biden' },
   // henchmen
+  tbot: { name: 'T-BOT', skin: '#e8e8ee', skinD: '#b0b0b8', mask: '#1a1a1e', jacket: '#f0f0f4', shirt: '#1a1a1e', pants: '#d8d8de', boots: '#333', gun: '#3ad0ff', head: 'robot', weapon: 'laser', special: 'grenade' },
+  robot: { skin: '#8a8f99', skinD: '#6a6f79', mask: '#2a2e36', jacket: '#6a707a', shirt: '#c8102e', pants: '#4a4f58', boots: '#222', gun: '#ff3a3a', head: 'robot' },
+  soldier: { skin: '#d9b08a', skinD: '#b48c68', hair: '#1a1a1a', mask: '#3f4a2a', jacket: '#4f5a3a', shirt: '#3a4430', pants: '#3f4830', boots: '#1a1a1a', gun: '#2a2a2a', head: 'helmet' },
   goon: { skin: '#d9a07a', skinD: '#b47c58', mask: '#26262a', jacket: '#4a5530', shirt: '#3a4426', pants: '#3a3a2a', boots: '#1a1a1a', gun: '#2a2a2a', head: 'mask' },
   rocket: { skin: '#d9a07a', skinD: '#b47c58', mask: '#3a2a1a', jacket: '#6b4a2a', shirt: '#5a3c20', pants: '#3a3020', boots: '#1a1a1a', gun: '#2a2a2a', head: 'mask', tube: 1 },
   anchorbot: { skin: '#9aa2b0', skinD: '#6a7280', mask: '#3a3f4a', jacket: '#2a3a7a', shirt: '#ffffff', tie: '#c8102e', pants: '#1a2450', boots: '#111', gun: null, head: 'tv' },
@@ -276,6 +280,8 @@ const HAIR = {
   clinton: ['..HHHHH..', '.HHHHHHH.', 'HHHHHHHH.', 'HHh......', 'HH.......', 'HH.......', '.H.......'],
   obama: ['.........', '..hhhhh..', '.hhhhhhh.', '.h.......'],
   biden: ['.........', '..hhhh...', '.hh......', '.h...GggG'],
+  robot: ['..kkkkk..', '.kkkkkkk.', '.kkkkkkkk', '.kkGGGGGk', '.kkkkkkkk', '.kkkkkkk.', '..kkkkkk.'],
+  helmet: ['..kkkkk..', '.kkkkkkk.', 'kkkkkkkkk', '.h.......'],
   general: ['..kkkkk..', 'kkkkGkkkk', '.kkkkkkkkk'.slice(0, 9), '.h..ggggg', '.h.......'],
   tv: ['..G...G..', 'kkkkkkkkk', 'kgggggggk', 'kgwgggwgk', 'kgggggggk', 'kggwwwggk', 'kkkkkkkkk', '...kkk...'],
   agent: ['..hhhhh..', '.hhhhhhh.', '.hh......', '.h..ggggg', '.h.......', '.g.......'],
@@ -354,7 +360,7 @@ function buildCharSprites(key) {
   SPR[key] = set;
 }
 Object.keys(CHARS).forEach(buildCharSprites);
-const PLAYABLE = ['trump', 'barron', 'donjr', 'eric', 'hegseth'];
+const PLAYABLE = ['trump', 'barron', 'donjr', 'eric', 'hegseth', 'tbot'];
 const BASE_GUN = {}; PLAYABLE.forEach(k => { BASE_GUN[k] = CHARS[k].gun; });
 function applyUpgradeLooks() {
   PLAYABLE.forEach(k => { CHARS[k].armour = upLvl('armour'); CHARS[k].gun = upLvl('gun') ? '#ffd23f' : BASE_GUN[k]; buildCharSprites(k); });
@@ -376,6 +382,8 @@ SPR.dog = {};
   });
 });
 SPR.dog.stand = SPR.dog.run0;
+SPR.diver = { stand: spriteFrom(16, 8, (g, R) => { R(2, 2, 10, 5, '#1a1a22'); R(11, 1, 4, 5, '#1a1a22'); R(12, 2, 3, 2, '#9fd8ff'); R(0, 3, 3, 3, '#ffd23f'); R(3, 1, 4, 1, '#ffd23f'); R(9, 6, 6, 1, '#555'); R(14, 6, 2, 1, '#888'); }) };
+SPR.diver.hurt = SPR.diver.stand;
 // turret
 SPR.turret = { stand: spriteFrom(18, 12, (g, R) => {
   R(1, 8, 14, 4, '#4a4f58'); R(1, 8, 14, 1, '#6a707a'); R(3, 3, 9, 6, '#6a707a'); R(3, 3, 9, 1, '#8a909a');
@@ -442,6 +450,8 @@ const PROJ = {
   tape: spriteFrom(16, 4, (g, R) => { R(0, 0, 16, 4, '#c8102e'); R(0, 1, 16, 1, '#ff5a5a'); R(3, 0, 1, 4, '#8a0a1e'); R(9, 0, 1, 4, '#8a0a1e'); }),
   medal: spriteFrom(7, 9, (g, R) => { R(2, 0, 3, 3, '#c8102e'); R(1, 3, 5, 5, '#d4af37'); R(2, 4, 3, 3, '#ffe07a'); }),
   fake: spriteFrom(14, 10, (g, R) => { R(0, 0, 14, 10, '#f4f4ea'); R(1, 1, 12, 3, '#111'); R(2, 2, 2, 1, '#fff'); R(5, 2, 2, 1, '#fff'); R(8, 2, 2, 1, '#fff'); R(1, 5, 5, 4, '#888'); R(7, 5, 6, 1, '#888'); R(7, 7, 6, 1, '#888'); }),
+  fireball: spriteFrom(9, 9, (g, R) => { R(2, 0, 5, 9, '#ff6a20'); R(0, 2, 9, 5, '#ff6a20'); R(2, 2, 5, 5, '#ffd23f'); R(3, 3, 3, 3, '#fff6c0'); }),
+  drum: spriteFrom(10, 12, (g, R) => { R(0, 0, 10, 12, '#2a2a2a'); R(0, 2, 10, 1, '#555'); R(0, 9, 10, 1, '#555'); R(1, 0, 2, 12, '#444'); R(3, 4, 4, 4, '#ffd23f'); R(4, 5, 2, 2, '#2a2a2a'); }),
   mic: spriteFrom(6, 11, (g, R) => { R(1, 0, 4, 4, '#3a3a3a'); R(2, 1, 1, 1, '#888'); R(2, 4, 2, 7, '#c8102e'); R(1, 4, 4, 1, '#d4af37'); }),
   redact: spriteFrom(14, 5, (g, R) => { R(0, 0, 14, 5, '#0a0a0a'); R(1, 1, 3, 1, '#333'); }),
   ink: spriteFrom(9, 9, (g, R) => { R(2, 0, 5, 9, '#2a1a40'); R(0, 2, 9, 5, '#2a1a40'); R(2, 2, 2, 2, '#6a4aa0'); }),
@@ -476,6 +486,11 @@ const THEMES = {
   space: { sky: ['#0a1030', '#4a6ab0'], top: '#8a929e', dirt: '#5a606a', stone: '#7a828e', far: '#2a3a6a', near: '#1a2238', bg: 'space', stars: true, kinds: ['rocketpad'], props: ['rocket', 'sign'] },
   moon: { sky: ['#000008', '#141428'], top: '#c8c8c8', dirt: '#9a9a9e', stone: '#7a7a80', far: '#3a3a44', near: '#22222a', bg: 'moon', stars: true, grav: 0.5, kinds: ['rocketpad'], props: ['rocket', 'pin'] },
   rushmore: { sky: ['#5ab0f0', '#dff2ff'], top: '#4f9a3a', dirt: '#7a6a5a', stone: '#a09a92', far: '#b8b0a6', near: '#2e6a3a', bg: 'rushmore', props: ['sign'] },
+  pool: { sky: ['#5ab8f0', '#e8f8ff'], top: '#5ccf4a', dirt: '#b8b0a0', stone: '#c8c4b8', far: '#e8e4d8', near: '#3a8a3a', bg: 'lincoln', water: true, props: ['sign'] },
+  giga: { sky: ['#20242c', '#4a5260'], top: '#9aa2ae', dirt: '#3a3e46', stone: '#5a606a', far: '#2a2e36', near: '#16181e', bg: 'giga', ally: 'tbot', kinds: ['floors', 'crates', 'floors'], props: ['truck', 'charger', 'robotarm'], foes: ['goon', 'goon', 'rocket', 'heavy', 'robot'] },
+  korea: { sky: ['#6a7a8a', '#d8dde2'], top: '#8a8a7a', dirt: '#5a5446', stone: '#7a766a', far: '#9aa0a6', near: '#4a4a44', bg: 'korea', kinds: ['squad', 'bunker', 'squad'], props: ['banner', 'banner'], foes: ['soldier', 'soldier', 'soldier', 'soldier', 'rocket', 'heavy', 'dog'] },
+  china: { sky: ['#2a0a1a', '#a03a3a'], top: '#5a5a62', dirt: '#2e2e36', stone: '#4a4a56', far: '#3a1a2a', near: '#140a12', bg: 'china', stars: true, kinds: ['floors', 'squad'], props: ['lantern', 'lantern', 'banner'], foes: ['robot', 'robot', 'robot', 'robot', 'turret', 'heavy'] },
+  russia: { sky: ['#8a9ab0', '#e4ecf4'], top: '#f4f8fc', dirt: '#5a5048', stone: '#7a7068', far: '#b8c4d4', near: '#4a3a3a', bg: 'russia', snow: true, kinds: ['drums', 'drums', 'squad'], props: ['derrick', 'derrick'], foes: ['goon', 'goon', 'heavy', 'rocket', 'dog'] },
   whitehouse: { sky: ['#5ab8f0', '#e8f8ff'], top: '#5ccf4a', dirt: '#6a5038', stone: '#c8c8c0', far: '#e8e8e0', near: '#3a8a3a', bg: 'whitehouse', kinds: ['stage'], props: ['crowd', 'sign'] },
 };
 function buildTiles(th, seed) {
@@ -600,6 +615,29 @@ function buildBackdrop(th, seed, VHpx) {
     gf.fillStyle = '#d8d8d0'; for (let i = 0; i < 6; i++) gf.fillRect(230 + i * 10, 112, 4, 50); gf.fillStyle = '#8aa0b8'; for (let i = 0; i < 8; i++) { gf.fillRect(178 + i * 20, 122, 6, 9); gf.fillRect(178 + i * 20, 146, 6, 9); }
     gf.fillStyle = '#ddd'; gf.fillRect(254, 56, 1, 20); gf.fillStyle = '#c8102e'; gf.fillRect(255, 56, 10, 6);
     for (let i = 0; i < 8; i++) { const x = Math.floor(R() * W); gn.fillStyle = th.near; gn.beginPath(); gn.arc(x, 196, 14 + R() * 10, 0, Math.PI * 2); gn.fill(); }
+  } else if (bg === 'lincoln') {
+    gf.fillStyle = '#ece8dc'; gf.fillRect(300, 100, 150, 70); gf.fillRect(292, 92, 166, 10); gf.fillRect(296, 86, 158, 6);
+    gf.fillStyle = '#d4d0c4'; for (let i = 0; i < 12; i++) gf.fillRect(304 + i * 12, 104, 5, 64);
+    gf.fillStyle = '#f4f0e8'; gf.fillRect(60, 30, 14, 140); gf.beginPath(); gf.moveTo(60, 30); gf.lineTo(67, 16); gf.lineTo(74, 30); gf.fill();
+    gf.fillStyle = '#4a9ad0'; gf.fillRect(0, 170, W, 50); gf.fillStyle = '#9fd0f0'; for (let i = 0; i < 30; i++) gf.fillRect(Math.floor(R() * W), 172 + Math.floor(R() * 40), 8, 1);
+    for (let i = 0; i < 14; i++) { const x = Math.floor(R() * W); gn.fillStyle = th.near; gn.beginPath(); gn.arc(x, 190, 12 + R() * 8, 0, Math.PI * 2); gn.fill(); gn.fillRect(x - 1, 190, 3, 30); }
+  } else if (bg === 'giga') {
+    gf.fillStyle = th.far; gf.fillRect(0, 0, W, H); gf.fillStyle = '#3a3e48'; for (let x = 0; x < W; x += 64) { gf.fillRect(x, 0, 6, H); for (let y = 0; y < H; y += 24) { gf.fillRect(x, y, 64, 2); } }
+    gf.fillStyle = '#e8f0ff'; for (let x = 20; x < W; x += 64) gf.fillRect(x, 8, 24, 3);
+    for (let i = 0; i < 4; i++) { const x = 40 + i * 120; gn.fillStyle = '#c8102e'; gn.fillRect(x, 150, 8, 40); gn.fillRect(x, 140, 30, 8); gn.fillRect(x + 26, 140, 6, 18); gn.fillStyle = '#e8e8ee'; gn.fillRect(x + 22, 158, 14, 6); }
+    gn.fillStyle = '#16181e'; gn.fillRect(0, 196, W, 24); gn.fillStyle = '#5a606a'; for (let x = 0; x < W; x += 10) gn.fillRect(x, 198, 6, 2);
+  } else if (bg === 'korea') {
+    wave(gf, 120, 18, 2, th.far);
+    for (let i = 0; i < 3; i++) { const x = 40 + i * 170; gn.fillStyle = '#6a6a62'; gn.fillRect(x, 110, 90, 110); gn.fillStyle = '#5a5a52'; for (let k = 0; k < 6; k++) gn.fillRect(x + 6 + k * 14, 120, 6, 90); gn.fillStyle = '#c8102e'; gn.fillRect(x + 20, 80, 50, 26); gn.fillRect(x + 44, 60, 2, 20); }
+    gn.fillStyle = th.near; for (let x = 0; x < W; x += 6) gn.fillRect(x, 200 + (x % 12 ? 0 : -3), 4, 20);
+  } else if (bg === 'china') {
+    for (let x = 0; x < W;) { const w = 18 + Math.floor(R() * 24), h = 70 + Math.floor(R() * 110); gf.fillStyle = th.far; gf.fillRect(x, 220 - h, w, h); gf.fillStyle = pick2(R, ['#ff3a6a', '#3ad0ff', '#ffd23f']); for (let wy = 220 - h + 4; wy < 214; wy += 7) if (R() < 0.5) gf.fillRect(x + 2, wy, w - 4, 1); x += w + 4; }
+    for (let i = 0; i < 2; i++) { const x = 100 + i * 250; gn.fillStyle = th.near; for (let k = 0; k < 4; k++) { gn.fillRect(x + k * 4, 130 + k * 22, 60 - k * 8, 18); gn.beginPath(); gn.moveTo(x - 8 + k * 4, 130 + k * 22); gn.lineTo(x + 30, 118 + k * 22); gn.lineTo(x + 68 - k * 4, 130 + k * 22); gn.fill(); } }
+    gn.fillStyle = '#3a1a1a'; wave(gn, 205, 6, 3, th.near);
+  } else if (bg === 'russia') {
+    wave(gf, 150, 10, 2, th.far);
+    for (let i = 0; i < 5; i++) { const x = 180 + i * 26, h = 50 + (i % 2) * 20; gf.fillStyle = '#c8b8a8'; gf.fillRect(x, 190 - h, 16, h); gf.fillStyle = pick2(R, ['#c8102e', '#2a6ad0', '#3aa05a', '#d4af37']); gf.beginPath(); gf.ellipse(x + 8, 190 - h, 11, 12, 0, Math.PI, 0); gf.fill(); gf.beginPath(); gf.moveTo(x - 3, 190 - h); gf.lineTo(x + 8, 170 - h); gf.lineTo(x + 19, 190 - h); gf.fill(); }
+    for (let i = 0; i < 5; i++) { const x = Math.floor(R() * W); gn.strokeStyle = '#2a2420'; gn.lineWidth = 2; gn.beginPath(); gn.moveTo(x, 220); gn.lineTo(x + 12, 130); gn.lineTo(x + 24, 220); gn.moveTo(x + 4, 190); gn.lineTo(x + 20, 190); gn.moveTo(x + 7, 160); gn.lineTo(x + 17, 160); gn.stroke(); }
   } else if (bg === 'cave') {
     gf.fillStyle = th.far; for (let x = 0; x < W; x += 4) { const h = 20 + R() * 50; gf.fillRect(x, 0, 4, h); gf.fillRect(x, 220 - (10 + R() * 40), 4, 60); }
     gn.fillStyle = th.near; for (let i = 0; i < 8; i++) { const x = Math.floor(R() * W); gn.fillRect(x, 120, 4, 100); gn.fillRect(x - 10, 140, 12, 2); gn.fillRect(x + 2, 128, 14, 2); }
@@ -641,13 +679,27 @@ const LEVELS = [
   { name: 'Breaking More News', theme: 'studio' },
   { name: 'The Swamp Throne', theme: 'final' },
   { name: 'Swamp Emperor', theme: 'final', boss: 'emperor' },
+  // ---- World 4: World Tour
+  { name: 'Reflecting on Greatness', theme: 'pool' },
+  { name: 'Giga Factory', theme: 'giga' },
+  { name: 'Parade Ground Panic', theme: 'korea' },
+  { name: 'Robot Republic', theme: 'china' },
+  { name: 'Oil Drum Steppe', theme: 'russia' },
+  { name: 'Deep Reflection', theme: 'pool' },
+  { name: 'Gigafactory Overdrive', theme: 'giga' },
+  { name: 'The Supreme Parade', theme: 'korea', boss: 'paradetank' },
+  { name: 'Dragon Protocol', theme: 'china', boss: 'robodragon' },
+  { name: 'The Oil Baron', theme: 'russia', boss: 'drillrig' },
 ];
 const NLEV = LEVELS.length;
-const WORLDS = [{ name: 'DRAIN THE SWAMP', from: 1 }, { name: 'THE COMEBACK TOUR', from: 11 }, { name: 'SWAMP STRIKES BACK', from: 21 }];
+const WORLDS = [{ name: 'DRAIN THE SWAMP', from: 1 }, { name: 'THE COMEBACK TOUR', from: 11 }, { name: 'SWAMP STRIKES BACK', from: 21 }, { name: 'WORLD TOUR', from: 31 }];
 // Mech-type bosses (machines can be blown up; any politician pilot climbs out and is fired)
 const MECHS = {
   biden: { name: 'THE SWAMP KING (feat. JOE BIDEN)', hp: 170, heads: ['biden'], attacks: ['rockets', 'icecream', 'stomp', 'summon'], pilot: 'biden', banner: ['THE SWAMP KING', "C'MON, MAN! MEET MY MECH!"] },
   kraken: { name: 'THE SWAMP KRAKEN', hp: 190, attacks: ['ink', 'stomp', 'ink', 'summon'], kraken: true, banner: ['THE SWAMP KRAKEN', 'RELEASE THE KRAKEN! (IT WAS IN THE SEWER)'] },
+  paradetank: { name: 'THE SUPREME PARADE TANK', hp: 230, attacks: ['rockets', 'stomp', 'summon', 'rockets'], fired: 'THE PARADE HAS BEEN CANCELLED', banner: ['THE SUPREME PARADE TANK', 'IT HAS NEVER LOST A PARADE. UNTIL TODAY.'] },
+  robodragon: { name: 'MECHA DRAGON 9000', hp: 250, attacks: ['fireball', 'rockets', 'fireball', 'summon'], fired: 'THE DRAGON HAS BEEN RECALLED', banner: ['MECHA DRAGON 9000', 'MASS-PRODUCED. MASSIVELY ANGRY.'] },
+  drillrig: { name: "THE OIL BARON'S DRILL RIG", hp: 270, attacks: ['drums', 'rockets', 'stomp', 'drums', 'summon'], fired: 'THE OIL BARON IS OUT OF BUSINESS', banner: ["THE OIL BARON'S DRILL RIG", 'DRILL, BARON, DRILL!'] },
   emperor: { name: 'THE SWAMP EMPEROR (feat. BIDEN & HARRIS)', hp: 280, heads: ['biden', 'harris'], attacks: ['rockets', 'icecream', 'coconuts', 'stomp', 'summon', 'wordsalad'], pilot: 'biden', pilot2: 'harris2', banner: ['THE SWAMP EMPEROR', 'TWO PILOTS. ZERO PLANS.'] },
 };
 const BOSSES = {
@@ -696,6 +748,17 @@ function genLevel(n) {
   }
   // flatten approach to the end zone
   run(W - x);
+  lv.water = null;
+  if (th.water) {
+    // Lincoln Memorial Reflecting Pool: high banks with one long pool to swim down
+    h = 15; features.length = 0;
+    for (let i = 0; i < W; i++) { surf[i] = 15; pit[i] = 0; }
+    lv.water = new Int16Array(W);
+    const p0 = 22, p1 = bodyEnd - 6;
+    for (let i = p0; i <= p1; i++) { surf[i] = 21; lv.water[i] = 16; }
+    for (let px = p0 + 5; px < p1 - 6; px += rint(10, 14)) features.push({ type: 'lily', x: px, len: 4, h: 15 });
+    lv.poolX = [p0, p1];
+  }
   const hEnd = h;
   // ceiling for cave levels
   const ceil = new Int16Array(W);
@@ -717,6 +780,7 @@ function genLevel(n) {
   if (n >= 6) pool.push('rocket', 'heavy', 'dog');
   if (n >= 11) pool.push('heavy', 'rocket', 'goon');
   if (n >= 21) pool.push('heavy', 'rocket', 'dog');
+  if (th.foes) { pool.length = 0; pool.push(...th.foes); }
   const prop = (kind, tx, row) => lv.props.push({ kind, x: tx * TS, row });
   const spawn = (type, tx, row) => lv.spawns.push({ type, x: tx * TS + 3, row });
   const foes = () => rint(1, Math.min(5, 2 + Math.floor(Math.min(n, 18) / 3)));
@@ -784,6 +848,16 @@ function genLevel(n) {
       for (let i = 0; i < 3; i++) lv.pickups.push({ type: 'gold', x: (fx + i) * TS + 2, row: fh });
       set(fx + 4, fh - 1, T.CRATE); set(fx + 4, fh - 2, T.CRATE);
       for (let i = 0; i < foes(); i++) spawn(pick2(R, pool), fx + 6 + i * 2, fh);
+    } else if (f.type === 'lily') {
+      for (let i = 0; i < 4; i++) set(f.x + i, 15, T.PLANK);
+      spawn('goon', f.x + 1, 15);
+      spawn('diver', f.x + 2, 21);
+      if (R() < 0.45) set(f.x + 6, 20, T.BARREL);
+      if (R() < 0.3) lv.pickups.push({ type: 'passport', x: (f.x + 7) * TS, row: 19 });
+    } else if (f.type === 'drums') {
+      for (let i = 0; i < 4; i++) { set(fx + i, fh - 1, T.BARREL); if (i % 2 === 0) set(fx + i, fh - 2, T.BARREL); }
+      prop('derrick', fx + 6, fh);
+      for (let i = 0; i < foes(); i++) spawn(pick2(R, pool), fx + 8 + i * 2, fh);
     } else if (f.type === 'rocketpad') {
       for (let bx = fx; bx < fx + 5; bx++) set(bx, fh - 1, T.STEEL);
       prop('rocket', fx + 1, fh - 1); spawn('turret', fx + 4, fh - 1); spawn(pick2(R, pool), fx + 7, fh);
@@ -796,7 +870,7 @@ function genLevel(n) {
     let cx = Math.floor(bodyEnd * frac);
     for (let k = 0; k < 40; k++) {
       for (const c of [cx + k, cx - k]) {
-        let ok = c > 18 && c < bodyEnd - 2;
+        let ok = c > 18 && c < bodyEnd - 2 && !(lv.poolX && c >= lv.poolX[0] - 1 && c <= lv.poolX[1] + 1 && c % 1 === 0 && false);
         for (let i = 0; ok && i < w; i++) if (pit[c + i] || surf[c + i] !== surf[c]) ok = false;
         if (ok) { for (let i = 0; i < w; i++) for (let y = surf[c] - 3; y < surf[c]; y++) set(c + i, y, T.E); return c; }
       }
@@ -864,14 +938,14 @@ function newWorld(n) {
   const wd = {
     lv, n, tiles: buildTiles(lv.th, n * 977), backdrop: buildBackdrop(lv.th, n * 31337),
     ents: [], bullets: [], parts: [], texts: [], queue: [], banners: [],
-    cam: { x: 0, y: 0 }, shake: 0, flash: 0, time: 0, kills: 0, rescues: 0, score: 0,
+    splats: [], cam: { x: 0, y: 0 }, shake: 0, flash: 0, time: 0, kills: 0, rescues: 0, score: 0,
     lives: 3 + upLvl('lives'), grenades: 3 + upLvl('bombs'), passports: 0, phase: 'intro', phaseT: 0, checkpoint: { x: 3 * TS, y: (lv.surf[3] - 2) * TS },
     boss: null, plane: null, snow: [], cageAlly: 0, stars: [], hud: { levelT: 4 },
   };
   world = wd;
   for (const s of lv.spawns) addEnemy(s.type, s.x, s.row);
   lv.cages.forEach((c, i) => {
-    const ally = ALLY_ORDER[((n - 1) + i) % (n >= 4 ? 4 : 3)];
+    const ally = lv.th.ally && i !== 1 ? lv.th.ally : ALLY_ORDER[((n - 1) + i) % (n >= 4 ? 4 : 3)];
     wd.ents.push({ kind: 'cage', x: c.x, y: c.row * TS - 22, w: 18, h: 22, ally, open: false, t: 0 });
   });
   lv.flags.forEach(f => wd.ents.push({ kind: 'flag', x: f.x, y: f.row * TS - 48, w: 8, h: 48, raised: false, rise: 0 }));
@@ -895,6 +969,9 @@ function makePlayer(ch, x, y) {
     wall: 0, wallLock: 0, wallLockDir: 0, fireCd: 0, hp: MAXHP(), inv: 0, anim: 0, dead: false, deadT: 0, drop: 0, hidden: false, burst: 0 };
 }
 const ENEMY = {
+  robot: { w: 10, h: 15, hp: 4, speed: 26, range: 170, rate: 1.3, burst: 2 },
+  soldier: { w: 10, h: 15, hp: 2, speed: 34, range: 150, rate: 1.6, burst: 1 },
+  diver: { w: 14, h: 8, hp: 2, speed: 40, range: 150, rate: 2.2, burst: 1 },
   goon: { w: 10, h: 15, hp: 2, speed: 28, range: 150, rate: 1.5, burst: 1 },
   rocket: { w: 10, h: 15, hp: 3, speed: 22, range: 180, rate: 2.8, burst: 1 },
   heavy: { w: 12, h: 15, hp: 7, speed: 18, range: 150, rate: 2.4, burst: 4 },
@@ -935,6 +1012,11 @@ function moveEnt(e, dt) {
     for (let tx = x0; tx <= x1; tx++) if (solidT(tAt(tx, ty))) { ny = (ty + 1) * TS + 0.001; e.vy = 0; break; }
   }
   e.y = ny;
+}
+function inWater(px, py) {
+  const lv = world.lv; if (!lv.water) return false;
+  const tx = Math.floor(px / TS); if (tx < 0 || tx >= lv.W) return false;
+  const wt = lv.water[tx]; return wt > 0 && py >= wt * TS + 2;
 }
 function wallAt(e, dir) {
   const px = dir > 0 ? e.x + e.w + 1 : e.x - 1;
@@ -1020,7 +1102,7 @@ function hurtPlayer(dmg, dir = 0) {
   if (p.dead || p.hidden || p.inv > 0 || p.maga > 0 || godMode || world.phase !== 'play' && world.phase !== 'boss') return;
   p.hp -= dmg; p.inv = 1.2; p.vx = dir * 120; p.vy = -150;
   Sound.play('hurt'); world.shake = Math.min(10, world.shake + 3);
-  for (let i = 0; i < 6; i++) part(cxOf(p), cyOf(p), rr(-80, 80), rr(-120, 0), 0.4, '#ffffff', 2, 300);
+  for (let i = 0; i < 10; i++) part(cxOf(p), cyOf(p), rr(-90, 90), rr(-160, -10), rr(0.5, 1), pick(['#b00018', '#d0102a', '#8a0012']), ri(1, 2), 600, 'blood');
   if (p.hp <= 0) killPlayer(false);
 }
 function killPlayer(fell) {
@@ -1077,7 +1159,14 @@ function updatePlayer(p, dt) {
   const accel = p.onGround ? 1500 : 950;
   p.vx = approach(p.vx, mx * RUN_V * (p.coke > 0 ? 1.4 : 1), accel * dt);
   if (mx) p.face = mx;
-  p.vy = Math.min(p.vy + GRAV * dt, MAX_FALL);
+  const inW = inWater(cxOf(p), cyOf(p));
+  if (inW) {
+    // swim mode: buoyant, slower, JUMP is a swim stroke (or a leap out at the surface)
+    p.vy = Math.min(p.vy + GRAV * 0.18 * dt, 75); p.vx = clamp(p.vx, -82, 82);
+    if (input.jumpPressed) { const atSurface = !inWater(cxOf(p), p.y - 5); p.vy = atSurface ? -JUMP_V * 0.92 : -170; input.jumpPressed = false; p.jbuf = 0; Sound.play('jump'); for (let i = 0; i < 4; i++) part(cxOf(p), p.y + 4, rr(-20, 20), rr(-50, -20), 0.6, '#d8f0ff', 1, -30); }
+    if (Math.random() < 0.06) part(cxOf(p) + p.face * 4, p.y + 3, 0, -25, 0.8, '#d8f0ff', 1, -20);
+    if (!p.wasWet) { p.wasWet = true; for (let i = 0; i < 8; i++) part(cxOf(p), p.y, rr(-50, 50), rr(-120, -40), 0.5, '#bfe6ff', 2, 400); }
+  } else { p.vy = Math.min(p.vy + GRAV * dt, MAX_FALL); p.wasWet = false; }
   p.wall = 0;
   if (!p.onGround && mx !== 0 && wallAt(p, mx)) { p.wall = mx; if (p.vy > 55) p.vy = 55; if (Math.random() < 0.3) part(mx > 0 ? p.x + p.w : p.x, p.y + p.h, 0, -10, 0.3, '#ccc', 1, 0); }
   p.jbuf = input.jumpPressed ? 0.12 : p.jbuf - dt;
@@ -1118,10 +1207,17 @@ function updatePlayer(p, dt) {
 }
 
 // ============================================================ enemies
+function bleed(e, n, kx) {
+  const robo = e.type === 'robot' || e.type === 'turret';
+  const cols = robo ? ['#ffd23f', '#fff3a0', '#2a2a2a', '#3a3a3a'] : ['#b00018', '#d0102a', '#8a0012', '#e8203a'];
+  const dir = sign(kx || 0);
+  for (let i = 0; i < n; i++) part(cxOf(e) + rr(-3, 3), cyOf(e) + rr(-4, 4), dir * rr(20, 140) + rr(-60, 60), rr(-200, -20), rr(0.6, 1.4), pick(cols), ri(1, 2), 600, robo ? 'debris' : 'blood');
+}
 function hurtEnemy(e, dmg, kx, ky, explosive) {
   if (e.dead) return;
   e.hp -= dmg; e.flash = 0.08;
   if (e.state === 'patrol') { e.state = 'shoot'; e.face = sign(cxOf(world.player) - cxOf(e)) || e.face; }
+  bleed(e, e.hp > 0 ? 5 : (explosive ? 34 : 22), kx);
   if (e.hp > 0) { e.vx += kx * 0.2; return; }
   e.dead = true;
   world.kills++; world.score += e.type === 'heavy' ? 300 : e.type === 'turret' ? 250 : 100;
@@ -1162,6 +1258,16 @@ function updateEnemy(e, dt) {
     if (e.burstLeft > 0 && (e.burstT -= dt) <= 0) { enemyFire(e, p); e.burstLeft--; e.burstT = 0.15; }
     if (!solidPx(ecx, e.y + e.h + 2)) { e.vy = Math.min(e.vy + GRAV * dt, MAX_FALL); moveEnt(e, dt); } else e.vy = 0;
     return;
+  }
+  if (e.type === 'diver') {
+    if (inWater(ecx, ecy)) {
+      e.face = sees ? (sign(dx) || e.face) : e.face;
+      e.vx = sees ? e.face * s.speed : e.face * s.speed * 0.6;
+      e.vy = approach(e.vy, sees ? clamp(dy, -40, 40) : Math.sin(world.time + e.anim) * 12, 120 * dt);
+      if (wallAt(e, e.face)) e.face *= -1;
+      if (sees && (e.fireCd -= dt) <= 0) { enemyFire(e, p); e.fireCd = s.rate; }
+    } else e.vy = Math.min(e.vy + GRAV * dt, MAX_FALL);
+    moveEnt(e, dt); e.anim += dt; return;
   }
   e.vy = Math.min(e.vy + GRAV * dt, MAX_FALL);
   const edgeAhead = () => { const fx = ecx + e.face * (e.w / 2 + 3), t = tAt(Math.floor(fx / TS), Math.floor((e.y + e.h + 2) / TS)); return !solidT(t) && t !== T.PLANK; };
@@ -1400,7 +1506,7 @@ function mechDestroyed(m) {
     world.queue.push({ t: 1.2, spawnPilot: md.pilot, x: m.x + 10, y: m.y + m.h });
     if (md.pilot2) world.queue.push({ t: 1.3, spawnPilot: md.pilot2, x: m.x + 26, y: m.y + m.h, partner: true });
   } else {
-    banner("YOU'RE FIRED!", 'THE KRAKEN HAS BEEN CALAMARI-D', 3, '#ffd34d'); Sound.play('fired');
+    banner("YOU'RE FIRED!", md.fired || 'THE KRAKEN HAS BEEN CALAMARI-D', 3, '#ffd34d'); Sound.play('fired');
     world.queue.push({ t: 2.2, extract: true });
   }
   world.ents.forEach(e => { if (e.kind === 'bproj') e.dead = true; });
@@ -1430,11 +1536,13 @@ function bossAttack(b) {
   else if (atk === 'mics') { for (let i = 0; i < (ph2 ? 4 : 3); i++) bossProj(b, 'mic', dir * (dist * 0.7 + rr(-30, 50)), -rr(220, 320), { grav: 560, spin: 14 }); Sound.play('toss'); }
   else if (atk === 'redact') { for (let i = 0; i < (ph2 ? 4 : 3); i++) bossProj(b, 'redact', dir * 90, -60 - i * 30, { grav: 0, homing: 1 + i * 0.3, life: 4, spin: 0 }); Sound.play('paper'); floatText(cxOf(b), b.y - 10, '[REDACTED]', '#ffffff', 0.8, 1); }
   else if (atk === 'teleprompter') { for (let i = 0; i < 2; i++) bossProj(b, 'teleprompter', dir * (120 + i * 60), -200, { grav: 500, bouncy: true }); Sound.play('toss'); }
+  else if (atk === 'fireball') { for (let i = 0; i < (ph2 ? 6 : 4); i++) bossProj(b, 'fireball', dir * (140 + i * 15), -40 + i * 22 - 20, { grav: 40, spin: 10 }); Sound.play('boom'); }
+  else if (atk === 'drums') { for (let i = 0; i < (ph2 ? 4 : 3); i++) bossProj(b, 'drum', dir * rr(70, 190), -rr(220, 320), { grav: 560, explode: true, spin: 6 }); Sound.play('toss'); floatText(cxOf(b), b.y - 10, 'DRILL, BARON, DRILL!', '#ffffff', 0.8, 1); }
   else if (atk === 'ink') { for (let i = 0; i < (ph2 ? 6 : 4); i++) bossProj(b, 'ink', dir * rr(60, 220), -rr(160, 320), { grav: 520 }); Sound.play('toss'); }
   else if (atk === 'stomp') { b.vy = -380; b.stomp = true; }
   else if (atk === 'summon') {
     const a = world.lv.arena;
-    for (let i = 0; i < (ph2 ? 3 : 2); i++) { const e = addEnemy(pick(['goon', 'goon', 'dog']), (a.x0 + 2 + Math.random() * (a.x1 - a.x0 - 4)) * TS, a.floor - 9); e.state = 'shoot'; }
+    for (let i = 0; i < (ph2 ? 3 : 2); i++) { const e = addEnemy(pick((world.lv.th.foes || ['goon', 'goon', 'dog']).filter(t => t !== 'turret' && t !== 'diver')), (a.x0 + 2 + Math.random() * (a.x1 - a.x0 - 4)) * TS, a.floor - 9); e.state = 'shoot'; }
     floatText(cxOf(b), b.y - 10, 'GET HIM!', '#ffffff', 0.8, 1);
   }
 }
@@ -1493,9 +1601,10 @@ function updateBproj(k, dt) {
   k.x += k.vx * dt; k.y += k.vy * dt;
   if (solidBox(k.x + 1, k.y + 1, k.w - 2, k.h - 2)) {
     if (k.bouncy && k.bounces < 2) { k.bounces++; k.y -= k.vy * dt; k.vy = -Math.abs(k.vy) * 0.6; }
+    else if (k.explode) { k.dead = true; explode(cxOf(k), cyOf(k), 1.7, { dmg: 3, hurtsPlayer: true }); }
     else if (!k.boomerang) { k.dead = true; for (let i = 0; i < 4; i++) part(cxOf(k), cyOf(k), rr(-40, 40), rr(-60, 0), 0.4, '#fff', 1, 300); }
   }
-  if (!p.dead && !p.hidden && overlap(p, k)) { k.dead = true; hurtPlayer(1, sign(k.vx)); }
+  if (!p.dead && !p.hidden && overlap(p, k)) { k.dead = true; if (k.explode) explode(cxOf(k), cyOf(k), 1.7, { dmg: 3, hurtsPlayer: true }); else hurtPlayer(1, sign(k.vx)); }
 }
 function updateWave(w, dt) {
   w.life -= dt; w.x += w.vx * dt;
@@ -1613,6 +1722,7 @@ function update(dt) {
   for (const pt of wd.parts) {
     pt.life -= dt; pt.vy += pt.grav * dt; pt.x += pt.vx * dt; pt.y += pt.vy * dt;
     if (pt.type === 'debris' && pt.vy > 0 && solidPx(pt.x, pt.y)) { pt.vy *= -0.3; pt.vx *= 0.6; pt.y -= 1; }
+    else if (pt.type === 'blood' && solidPx(pt.x, pt.y)) { pt.life = 0; if (wd.splats.length > 500) wd.splats.shift(); wd.splats.push([Math.round(pt.x), Math.round(pt.y - 1), pt.col, ri(1, 3)]); }
   }
   wd.parts = wd.parts.filter(pt => pt.life > 0);
   for (const t of wd.texts) { t.life -= dt; t.y -= 18 * dt; }
@@ -1724,8 +1834,34 @@ function drawKraken(m, cx, cy) {
   bx.fillStyle = '#d4af37'; bx.fillRect(x0 + 6, y0 + 9, 28, 2);
   if (m.flash > 0) { bx.fillStyle = 'rgba(255,255,255,0.6)'; bx.fillRect(x0, y0, 40, 50); }
 }
+function drawMachine(m, cx, cy) {
+  const x0 = Math.round(m.x - cx), y0 = Math.round(m.y - cy), f = m.face, t = m.anim;
+  const R = (lx, ly, w, h, col) => { bx.fillStyle = col; bx.fillRect(f > 0 ? x0 + lx : x0 + 40 - lx - w, y0 + ly, w, h); };
+  if (m.variant === 'paradetank') {
+    R(-4, 38, 48, 12, '#2a2e22'); for (let k = 0; k < 6; k++) R(-2 + k * 8 + (Math.floor(t * 8) % 2), 42, 5, 5, '#55594a');
+    R(-2, 26, 44, 13, '#5a6a3a'); R(-2, 26, 44, 2, '#7a8a5a'); R(6, 12, 26, 15, '#4f5e32'); R(6, 12, 26, 2, '#6f7e52');
+    R(30, 16, 24, 5, '#3f4a2a'); R(52, 15, 4, 7, '#2a2e22'); R(12, 6, 3, 6, '#3f4a2a');
+    for (let k = 0; k < 5; k++) R(4 + k * 7, 30, 4, 4, k % 2 ? '#c8102e' : '#ffd23f');
+    R(14, 16, 8, 4, '#9fd8ff');
+  } else if (m.variant === 'robodragon') {
+    const wv = k => Math.round(Math.sin(t * 4 + k) * 2);
+    for (let k = 0; k < 5; k++) R(k * 6, 26 + wv(k), 8, 10, k % 2 ? '#d4af37' : '#c8102e');
+    R(4, 36, 4, 14, '#8a8f99'); R(22, 36, 4, 14, '#8a8f99'); R(2, 48, 8, 2, '#555'); R(20, 48, 8, 2, '#555');
+    R(24, 6, 22, 18, '#c8102e'); R(24, 6, 22, 3, '#ff4a4a'); R(40, 20, 10, 4, '#d4af37'); R(42, 24, 8, 2, '#8a0a1e');
+    R(36, 10, 4, 4, '#3ad0ff'); R(26, 2, 3, 5, '#d4af37'); R(32, 1, 3, 6, '#d4af37'); R(46, 12, 8, 1, '#d4af37'); R(46, 16, 6, 1, '#d4af37');
+    R(-6, 22, 8, 4, '#d4af37');
+  } else {
+    R(0, 38, 40, 12, '#1a1a1a'); for (let k = 0; k < 40; k += 8) R(k, 38, 4, 12, '#ffd23f');
+    R(4, 0, 3, 38, '#3a3430'); R(24, 0, 3, 38, '#3a3430'); R(4, 0, 23, 3, '#3a3430'); for (let k = 6; k < 38; k += 8) R(4, k, 23, 1, '#3a3430');
+    R(28, 18, 14, 20, '#5a4a3a'); R(30, 20, 10, 6, '#9fd8ff'); R(29, 10, 12, 3, '#111'); R(31, 4, 8, 7, '#111'); R(31, 9, 8, 1, '#c8102e');
+    const sp = Math.floor(t * 12) % 3; R(13 + sp, 50, 6 - sp, 4, '#8a8f99'); R(14, 54, 4, 3, '#5a5f69');
+    R(-6, 24, 10, 14, '#2a2a2a'); R(-6, 28, 10, 2, '#555');
+  }
+  if (m.flash > 0) { bx.fillStyle = 'rgba(255,255,255,0.6)'; bx.fillRect(x0, y0, 40, 50); }
+}
 function drawMech(m, cx, cy) {
   if (m.variant === 'kraken') return drawKraken(m, cx, cy);
+  if (m.variant === 'paradetank' || m.variant === 'robodragon' || m.variant === 'drillrig') return drawMachine(m, cx, cy);
   const x0 = Math.round(m.x - cx), y0 = Math.round(m.y - cy), f = m.face;
   const R = (lx, ly, w, h, col) => { bx.fillStyle = col; bx.fillRect(f > 0 ? x0 + lx : x0 + 40 - lx - w, y0 + ly, w, h); };
   const st = Math.abs(m.vx) > 5 ? Math.sin(m.anim * 7) * 2 : 0;
@@ -1754,6 +1890,12 @@ function drawProp(kind, x, y, t) {
   else if (kind === 'podium') { R(0, -12, 12, 12, '#7a5226'); R(0, -12, 12, 2, '#9a6a34'); R(3, -8, 6, 4, '#1c3f8f'); R(5, -7, 2, 2, '#d4af37'); R(5, -16, 1, 4, '#333'); }
   else if (kind === 'escalator') { for (let k = 0; k < 6; k++) R(k * 4, -k * 4 - 4, 6, 4, k % 2 ? '#d4af37' : '#f5c400'); R(0, -28, 1, 24, '#d4af37'); R(24, -28, 1, 4, '#d4af37'); R(-2, -2, 30, 2, '#a07a20'); }
   else if (kind === 'rocket') { R(4, -30, 8, 26, '#f4f4f4'); R(5, -36, 6, 6, '#f4f4f4'); R(7, -39, 2, 3, '#c8102e'); R(4, -18, 8, 2, '#c8102e'); R(5, -26, 6, 4, '#1c3f8f'); R(1, -8, 3, 8, '#9aa2b0'); R(12, -8, 3, 8, '#9aa2b0'); R(4, -4, 8, 4, '#555'); }
+  else if (kind === 'truck') { R(0, -10, 30, 7, '#c8ccd4'); R(4, -15, 18, 5, '#b8bcc4'); R(6, -14, 12, 3, '#2a2e36'); R(0, -4, 30, 1, '#8a8f99'); R(3, -4, 5, 4, '#1a1a1a'); R(22, -4, 5, 4, '#1a1a1a'); R(28, -9, 2, 2, '#ff3a3a'); R(0, -9, 2, 1, '#e8f4ff'); }
+  else if (kind === 'charger') { R(2, -20, 8, 20, '#e8e8ee'); R(3, -18, 6, 6, '#c8102e'); R(4, -10, 4, 1, '#3ad0ff'); R(9, -14, 3, 1, '#333'); R(11, -14, 1, 10, '#333'); }
+  else if (kind === 'robotarm') { R(0, -6, 12, 6, '#555'); R(4, -22, 4, 16, '#c8102e'); R(4, -24, 16, 4, '#c8102e'); R(18, -24, 3, 10, '#c8102e'); R(16, -14, 7, 3, '#e8e8ee'); }
+  else if (kind === 'banner') { R(1, -40, 2, 40, '#888'); R(3, -38, 14, 22, '#c8102e'); R(3, -38, 14, 2, '#a00c24'); R(8, -32, 4, 4, '#ffd23f'); }
+  else if (kind === 'lantern') { R(5, -34, 1, 6, '#333'); R(1, -28, 9, 10, '#e8202a'); R(0, -26, 11, 6, '#ff3a3a'); R(3, -18, 5, 2, '#ffd23f'); R(5, -16, 1, 4, '#ffd23f'); R(1, -28, 9, 1, '#ffd23f'); }
+  else if (kind === 'derrick') { R(0, -2, 22, 2, '#2a2420'); R(2, -40, 2, 40, '#3a3430'); R(18, -40, 2, 40, '#3a3430'); R(2, -40, 18, 2, '#3a3430'); for (let k = 0; k < 40; k += 8) R(2, -40 + k, 18, 1, '#3a3430'); R(9, -46, 4, 6, '#3a3430'); R(6, -8, 10, 6, '#1a1a1a'); }
   else if (kind === 'sign') { R(5, -18, 2, 18, '#7a5226'); R(-2, -26, 16, 10, '#c8102e'); R(-1, -25, 14, 8, '#c8102e'); R(0, -24, 2, 6, '#fff'); R(3, -24, 3, 6, '#fff'); R(7, -24, 2, 6, '#fff'); R(10, -24, 2, 6, '#fff'); R(0, -21, 2, 1, '#c8102e'); R(4, -22, 1, 2, '#c8102e'); }
 }
 function drawBackground(cx, cy) {
@@ -1798,6 +1940,7 @@ function render() {
   bx.imageSmoothingEnabled = false;
   drawBackground(cx, cy);
   drawTiles(cx, cy);
+  for (const sp of wd.splats) { const sx = sp[0] - cx, sy = sp[1] - cy; if (sx < -4 || sx > VW + 4 || sy < -4 || sy > VH + 4) continue; if (!solidPx(sp[0], sp[1] + 1) && !solidPx(sp[0], sp[1] - 1) && !solidPx(sp[0] + 1, sp[1])) continue; bx.fillStyle = sp[2]; bx.fillRect(sx, sy, sp[3], 1); }
   const p = wd.player;
   for (const pr of wd.lv.props) { const px = pr.x - cx, py = pr.row * TS - cy; if (px > -70 && px < VW + 40 && py > -10 && py < VH + 70) drawProp(pr.kind, px, py, wd.time); }
   // entities, back to front
@@ -1820,7 +1963,8 @@ function render() {
     if (ex < -120 || ex > VW + 120 || ey < -140 || ey > VH + 120) continue;
     switch (e.kind) {
       case 'enemy':
-        if (e.type === 'dog') drawSpr(SPR.dog[Math.abs(e.vx) > 5 ? 'run' + (Math.floor(e.anim) % 2) : 'stand'], ex - 1, ey - 1, e.face);
+        if (e.type === 'diver') drawSpr(SPR.diver.stand, ex - 1, ey, e.face);
+        else if (e.type === 'dog') drawSpr(SPR.dog[Math.abs(e.vx) > 5 ? 'run' + (Math.floor(e.anim) % 2) : 'stand'], ex - 1, ey - 1, e.face);
         else if (e.type === 'turret') drawSpr(SPR.turret.stand, ex - 2, ey, e.face);
         else drawEntityHuman(e.type, e, cx, cy);
         flashOverlay(e, cx, cy);
@@ -1890,6 +2034,12 @@ function render() {
     else if (pt.type === 'flash') { bx.fillStyle = pt.col; bx.fillRect(Math.round(x - pt.size / 2), Math.round(y - pt.size / 2), pt.size, pt.size); }
     else if (pt.type === 'star') { bx.fillStyle = pt.col; bx.fillRect(Math.round(x), Math.round(y) - 1, 1, 3); bx.fillRect(Math.round(x) - 1, Math.round(y), 3, 1); }
     else { bx.fillStyle = pt.col; bx.fillRect(Math.round(x), Math.round(y), pt.size, pt.size); }
+  }
+  if (wd.lv.water) {
+    const wl = wd.lv.water, t0 = Math.max(0, Math.floor(cx / TS)), t1 = Math.min(wd.lv.W - 1, Math.floor((cx + VW) / TS));
+    for (let tx = t0; tx <= t1; tx++) { const wt = wl[tx]; if (!wt) continue; const sy = wt * TS - cy, sx = tx * TS - cx;
+      bx.fillStyle = 'rgba(40,130,240,0.36)'; bx.fillRect(sx, sy, TS, VH - sy);
+      bx.fillStyle = 'rgba(220,245,255,0.85)'; for (let k = 0; k < TS; k += 4) bx.fillRect(sx + k, sy + Math.round(Math.sin(wd.time * 3 + (tx * TS + k) * 0.2)), 3, 1); }
   }
   if (wd.lv.th.snow) { bx.fillStyle = '#ffffff'; for (const s of wd.snow) bx.fillRect(Math.round(s.x), Math.round(s.y), 1, 1); }
   if (wd.lv.n === 9) { const gr = bx.createRadialGradient(cxOf(p) - cx, cyOf(p) - cy, 40, cxOf(p) - cx, cyOf(p) - cy, VW * 0.7); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.55)'); bx.fillStyle = gr; bx.fillRect(0, 0, VW, VH); }
@@ -2090,10 +2240,16 @@ const STORY = {
     { bg: 'space', actors: [['trump', 0.32, 1, 3], ['hegseth', 0.52, 1, 3], ['donjr', 0.7, -1, 3]], who: 'PETE', text: 'Space Force is standing by, sir. Say the word.' },
     { bg: 'space', actors: [['trump', 0.5, 1, 3.4]], who: 'DONALD', text: 'The word is WINNING. Light the rockets.' },
   ],
+  world4: [
+    { bg: 'whitehouse', actors: [['trump', 0.5, 1, 3.2]], who: 'NARRATOR', text: 'The Swamp is drained at home. But the goons have fled abroad, and they took their worst toys with them.' },
+    { bg: 'giga', actors: [['tbot', 0.4, 1, 3], ['trump', 0.62, -1, 3]], who: 'T-BOT', text: 'GREETINGS, MR PRESIDENT. THE GIGA FACTORY IS UNDER ATTACK. REQUESTING... TREMENDOUS ASSISTANCE.' },
+    { bg: 'russia', actors: [['trump', 0.35, 1, 3], ['hegseth', 0.6, -1, 3]], who: 'PETE', text: 'Intel puts a parade tank in the north, a mecha dragon in the east, and an Oil Baron sitting on a mountain of drums.' },
+    { bg: 'pool', actors: [['trump', 0.5, 1, 3.4]], who: 'DONALD', text: 'A World Tour. I love a tour. First stop: the Reflecting Pool. Everybody into the water. Beautiful water.' },
+  ],
   ending: [
     { bg: 'final', actors: [['trump', 0.5, 1, 3.2]], who: 'NARRATOR', text: 'The Swamp Emperor lies in pieces. Its pilots sit in a very small cage, arguing about whose turn it was to steer.' },
     { bg: 'whitehouse', actors: [['barron', 0.22, 1, 3], ['donjr', 0.38, 1, 3], ['trump', 0.54, 1, 3.4], ['eric', 0.7, -1, 3], ['hegseth', 0.84, -1, 3]], who: 'NARRATOR', text: 'The Trump Force returns home. The eagles circle. The flags fly. Every last drop of the Swamp has been drained.' },
-    { bg: 'whitehouse', actors: [['trump', 0.5, 1, 3.6]], who: 'DONALD', text: 'They said it could not be done. It was done. Thirty missions. Perfect. Maybe the most perfect ever. Thank you, America.' },
+    { bg: 'whitehouse', actors: [['trump', 0.5, 1, 3.6]], who: 'DONALD', text: 'They said it could not be done. It was done. Forty missions. Perfect. Maybe the most perfect ever. Thank you, America.' },
   ],
 };
 const BRIEF = {
@@ -2108,6 +2264,9 @@ const BRIEF = {
   obama2: 'Bad news: OBAMA is back for the sequel, now with teleprompters. Nobody asked for this.',
   kraken: 'Something huge is moving in the sewer. Rumours say it is the SWAMP KRAKEN. Rumours are right.',
   harris2: 'KAMALA HARRIS has seized the White House lawn for a rematch. The coconuts are bigger this time.',
+  paradetank: 'The SUPREME PARADE TANK has never lost a parade. It has also never been hit by a golden grenade.',
+  robodragon: 'MECHA DRAGON 9000: mass-produced, breathes fire, no off switch. Find one.',
+  drillrig: "The OIL BARON's drill rig throws burning oil drums. Stay mobile and do not stand near the barrels, sir.",
   emperor: 'The SWAMP EMPEROR awaits on its throne: Biden AND Harris, one mech. End this, sir.',
 };
 let scene = null;
@@ -2203,6 +2362,7 @@ function startLevel(n, noStory) {
     if (n === 1) panels.push(...STORY.intro);
     if (n === 11) panels.push(...STORY.world2);
     if (n === 21) panels.push(...STORY.world3);
+    if (n === 31) panels.push(...STORY.world4);
     const L = LEVELS[n - 1];
     if (L.boss && BRIEF[L.boss]) {
       const bk = BOSSES[L.boss] ? BOSSES[L.boss].spr || L.boss : null;
@@ -2257,7 +2417,7 @@ function levelComplete() {
 function gameOver() { state = 'over'; showScreen('gameover'); }
 const totals = { kills: 0, rescues: 0, score: 0 };
 
-const BOSS_SHORT = { mamdani: 'MAMDANI', harris: 'HARRIS', clinton: 'CLINTON', obama: 'OBAMA', biden: 'SWAMP KING', anchorbot: 'ANCHORBOT', agent: 'DEEP STATE', generalissimo: 'GENERALISSIMO', obama2: 'OBAMA 2', kraken: 'KRAKEN', harris2: 'HARRIS 2', emperor: 'EMPEROR' };
+const BOSS_SHORT = { mamdani: 'MAMDANI', harris: 'HARRIS', clinton: 'CLINTON', obama: 'OBAMA', biden: 'SWAMP KING', anchorbot: 'ANCHORBOT', agent: 'DEEP STATE', generalissimo: 'GENERALISSIMO', obama2: 'OBAMA 2', kraken: 'KRAKEN', harris2: 'HARRIS 2', emperor: 'EMPEROR', paradetank: 'PARADE TANK', robodragon: 'MECHA DRAGON', drillrig: 'DRILL RIG' };
 let gridWorld = -1;
 function buildLevelGrid() {
   const grid = $('levelGrid'); grid.innerHTML = '';

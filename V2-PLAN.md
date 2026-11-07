@@ -76,3 +76,16 @@ Done on branch `v2` (not pushed):
 Storyline and cutscenes: done. Scenes play before level 1 (intro), before levels 11 and 21 (world openers), before every boss level (Pete's intel briefing) and after level 30 (ending). They use letterbox bars and a typewriter caption, and can be skipped with SKIP, a tap or a key.
 
 Content line, agreed with the user: the Generalissimo stays a generic cartoon dictator, not an ethnic stereotype. No level treats immigrants as the enemy.
+
+## World 4: World Tour (levels 31–40), done
+| Levels | Theme | What's there |
+|---|---|---|
+| 31, 36 | Lincoln Memorial Reflecting Pool | Swim mode: buoyancy, JUMP is a swim stroke or a leap out at the surface. Frogman divers, lily-pad platforms, underwater barrels. |
+| 32, 37 | Giga Factory | The friendly T-Bot (laser rifle) is in the cages and playable. No real brand logos. |
+| 33, 38 | Parade grounds | Uniformed regime soldiers. Boss: the Supreme Parade Tank, a fictional machine. |
+| 34, 39 | Robot Republic | Robot armies. Boss: Mecha Dragon 9000. |
+| 35, 40 | Oil Drum Steppe | Chain-reacting drum fields and oil derricks. Boss: the Oil Baron's Drill Rig, which throws exploding drums. |
+
+Other changes:
+- The ending cutscene now plays after level 40.
+- Blood: henchmen bleed when hit and when killed, and the blood leaves splats. Robots and turrets spark instead. Politician bosses are never killed, so they never bleed.
